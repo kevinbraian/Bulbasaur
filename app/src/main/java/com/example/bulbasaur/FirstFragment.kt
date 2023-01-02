@@ -31,6 +31,7 @@ class FirstFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        activity?.title = "Repartija"
         val nameEditText = binding.name
         val amountEditText = binding.amount
         val recyclerView = binding.reclycerview
@@ -48,7 +49,7 @@ class FirstFragment : Fragment() {
             if (recyclerView.adapter == null) {
                 // Crea un nuevo adaptador y establecelo en el RecyclerView si aún no tiene uno
                 val adapter = ItemAdapter(items) // Crea un nuevo adaptador y pasa los datos necesarios para inicializarlo
-                recyclerView.setAdapter(adapter)
+                recyclerView.adapter = adapter
             } else {
                 // Obtén el adaptador existente y agrega el elemento
                 val adapter = recyclerView.adapter as ItemAdapter
@@ -81,8 +82,8 @@ class ItemAdapter(private val items: MutableList<Item>) : RecyclerView.Adapter<I
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.nameTextView.setText(item.name)
-        holder.amountTextView.setText(item.amount)
+        holder.nameTextView.text = item.name
+        holder.amountTextView.text = item.amount
     }
     override fun getItemCount(): Int {
         return items.size
