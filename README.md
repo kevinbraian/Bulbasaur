@@ -17,7 +17,12 @@ Android Studio
 Emulador o dispositivo Android
 
 ## Instalación
-1. Descarga o clona este repositorio.
+1. Descarga el repositorio de GitHub y descomprímelo.
 2. Abre Android Studio y selecciona "Open an existing Android Studio project".
-3. Selecciona la carpeta del proyecto descargado.
-4. Ejecuta el proyecto en un emulador o dispositivo Android.
+3. Selecciona la carpeta descomprimida y presiona "Open".
+4. Conecta tu dispositivo móvil o inicia un emulador.
+5. Haz clic en "Run" y selecciona tu dispositivo.
+6. Espera a que la aplicación se instale en tu dispositivo y presiona "Play" para iniciarla.
+
+## Autor
+Repartija fue creada por KevinApps.
