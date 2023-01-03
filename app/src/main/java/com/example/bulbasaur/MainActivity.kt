@@ -1,5 +1,8 @@
 package com.example.bulbasaur
 
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
@@ -10,7 +13,8 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
 import com.example.bulbasaur.databinding.ActivityMainBinding
-
+import androidx.core.content.ContentProviderCompat.requireContext
+import com.example.bulbasaur.ItemDb
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -29,9 +33,27 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         binding.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+            val dbHelper = ItemDb(this)
+            val db = dbHelper.writableDatabase
+            val cursor = db.query(
+                ItemContract.TABLE_NAME,   // Nombre de la tabla
+                arrayOf(ItemContract.COLUMN_NAME, ItemContract.COLUMN_AMOUNT), // Columnas a devolver
+                null, null, null, null, null)
+
+            val items = mutableListOf<Item>()
+            with(cursor) {
+                while (moveToNext()) {
+                    val name = getString(getColumnIndexOrThrow(ItemContract.COLUMN_NAME))
+                    val amount = getString(getColumnIndexOrThrow(ItemContract.COLUMN_AMOUNT))
+                    items.add(Item(name, amount))
+                }
+            }
+
+            val allItems = dbHelper.getAllItems()
+            Snackbar.make(view, allItems.toString(), Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -56,3 +78,5 @@ class MainActivity : AppCompatActivity() {
                 || super.onSupportNavigateUp()
     }
 }
+
+//
