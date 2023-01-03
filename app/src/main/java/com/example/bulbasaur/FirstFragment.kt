@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlin.math.abs
 import com.example.bulbasaur.databinding.FragmentFirstBinding
 
 class FirstFragment : Fragment() {
@@ -33,7 +34,7 @@ class FirstFragment : Fragment() {
         activity?.title = "Repartija"
         val nameEditText = binding.name
         val amountEditText = binding.amount
-        val recyclerView = binding.reclycerview
+        val recyclerView = binding.reclyclerview
         val layoutManager = LinearLayoutManager(requireContext())
         recyclerView.layoutManager = layoutManager
         val items = mutableListOf<Item>()
@@ -52,25 +53,24 @@ class FirstFragment : Fragment() {
         }
 
         binding.buttonAdd.setOnClickListener {
-            val namet = nameEditText.text.toString()
-            val amountt = amountEditText.text.toString()
-            val amounttInt = amountt.toInt()
-            val values = ContentValues().apply {
-                put(ItemContract.COLUMN_NAME, namet)
-                put(ItemContract.COLUMN_AMOUNT, amounttInt)
-            }
-            val item = Item(amountEditText.text.toString(), amountEditText.text.toString())
-                if (item.name.isNotEmpty() && item.amount.isNotEmpty()){
-                    db.insert(ItemContract.TABLE_NAME, null, values)
-                    adapter.add(item)
-                    adapter.update(getAllItemsFromDb())
-                    adapter.notifyDataSetChanged()
-                    // Limpia los campos de texto
-                    nameEditText.text.clear()
-                    amountEditText.text.clear()
-                } else {
-                    Log.d("ItemAdapter", "Item name is empty")
+            val item = Item(amountEditText.text.toString(),amountEditText.text.toString())
+            if (item.name.isNotEmpty() && item.amount.isNotEmpty()){
+                val namet = nameEditText.text.toString()
+                val amountt = amountEditText.text.toString()
+                val amounttInt = amountt.toInt()
+                val values = ContentValues().apply {
+                    put(ItemContract.COLUMN_NAME, namet)
+                    put(ItemContract.COLUMN_AMOUNT, amounttInt)
                 }
+                db.insert(ItemContract.TABLE_NAME, null, values)
+                adapter.add(item)
+                adapter.update(getAllItemsFromDb())
+                // Limpia los campos de texto
+                nameEditText.text.clear()
+                amountEditText.text.clear()
+            } else {
+                Log.d("ItemAdapter", "Item name is empty")
+            }
         }
     }
 
@@ -91,8 +91,8 @@ class FirstFragment : Fragment() {
         cursor.use {
             while (it.moveToNext()) {
                 val item = Item(
-                    it.getString(it.getColumnIndex(ItemContract.COLUMN_NAME)),
-                    it.getInt(it.getColumnIndex(ItemContract.COLUMN_AMOUNT)).toString()
+                    it.getString(abs(it.getColumnIndex(ItemContract.COLUMN_NAME))),
+                    it.getInt(abs(it.getColumnIndex(ItemContract.COLUMN_AMOUNT))).toString()
                 )
                 items.add(item)
             }
@@ -131,13 +131,15 @@ class ItemAdapter(private val items: MutableList<Item>) : RecyclerView.Adapter<I
         return items.size
     }
     fun add(item: Item) {
+        val position = items.size - 1
         items.add(item)
-        notifyDataSetChanged()
+        notifyItemInserted(position)
     }
     fun update(items: List<Item>) {
+        val position = items.size - 1
         this.items.clear()
         this.items.addAll(items)
-        notifyDataSetChanged()
+        notifyItemChanged(position)
     }
 
 
