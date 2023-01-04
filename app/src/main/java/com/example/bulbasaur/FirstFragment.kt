@@ -1,12 +1,13 @@
 package com.example.bulbasaur
 
-import android.content.ContentValues
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -38,18 +39,18 @@ class FirstFragment : Fragment() {
         val layoutManager = LinearLayoutManager(requireContext())
         recyclerView.layoutManager = layoutManager
         val items = mutableListOf<Item>()
-        val dbHelper = ItemDb(requireContext())
-        val db = dbHelper.writableDatabase
         val adapter = ItemAdapter(items)
+        val db = openDb(requireContext())
         recyclerView.adapter = adapter
+        val deleteButton = view.findViewById<Button>(R.id.delete_item)
+
 
         binding.buttonFirst.setOnClickListener {
             findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
         }
 
         binding.buttonDelete.setOnClickListener {
-            db.execSQL("DELETE FROM items")
-
+            deleteFromDb(db)
         }
 
         binding.buttonAdd.setOnClickListener {
@@ -58,11 +59,7 @@ class FirstFragment : Fragment() {
                 val namet = nameEditText.text.toString()
                 val amountt = amountEditText.text.toString()
                 val amounttInt = amountt.toInt()
-                val values = ContentValues().apply {
-                    put(ItemContract.COLUMN_NAME, namet)
-                    put(ItemContract.COLUMN_AMOUNT, amounttInt)
-                }
-                db.insert(ItemContract.TABLE_NAME, null, values)
+                insertIntoDb(db,namet,amounttInt)
                 adapter.add(item)
                 adapter.update(getAllItemsFromDb())
                 // Limpia los campos de texto
@@ -72,15 +69,24 @@ class FirstFragment : Fragment() {
                 Log.d("ItemAdapter", "Item name is empty")
             }
         }
+
+        /*deleteButton.setOnClickListener {
+            // Obtiene la posición del elemento a eliminar
+            val index = getItemPosition(item)
+            // Elimina el elemento de la lista de elementos y de la base de datos
+            deleteItem(requireContext(), index)
+        }*/
+
+
     }
 
     override fun onDestroyView() {
-        val dbHelper = ItemDb(requireContext())
-        val db = dbHelper.writableDatabase
+        val db = openDb(requireContext())
         super.onDestroyView()
-        db.close()
+        deleteFromDb(db)
         _binding = null
         activity?.deleteDatabase(ItemContract.DATABASE_NAME)
+        closeDb(db)
     }
 
     private fun getAllItemsFromDb(): MutableList<Item> {
@@ -88,17 +94,34 @@ class FirstFragment : Fragment() {
         val items = mutableListOf<Item>()
         val db = dbHelper.readableDatabase
         val cursor = db.rawQuery("SELECT * FROM ${ItemContract.TABLE_NAME}", null)
-        cursor.use {
-            while (it.moveToNext()) {
-                val item = Item(
-                    it.getString(abs(it.getColumnIndex(ItemContract.COLUMN_NAME))),
-                    it.getInt(abs(it.getColumnIndex(ItemContract.COLUMN_AMOUNT))).toString()
-                )
-                items.add(item)
+
+        try {
+            cursor.use {
+                while (it.moveToNext()) {
+                    val item = Item(
+                        it.getString(abs(it.getColumnIndex(ItemContract.COLUMN_NAME))),
+                        it.getInt(abs(it.getColumnIndex(ItemContract.COLUMN_AMOUNT))).toString()
+                    )
+                    items.add(item)
+                }
             }
+        } finally {
+            cursor.close()
         }
         return items
     }
+
+    /*private fun getItemPosition(item: Item): Int {
+        // Recorre la lista de elementos y devuelve la posición del elemento especificado
+        for (i in items.indices) {
+            if (items[i] == item) {
+                return i
+            }
+        }
+        // Si no se encuentra el elemento, se devuelve -1
+        return -1
+    }*/
+
 
 }
 
@@ -130,11 +153,28 @@ class ItemAdapter(private val items: MutableList<Item>) : RecyclerView.Adapter<I
     override fun getItemCount(): Int {
         return items.size
     }
+
     fun add(item: Item) {
         val position = items.size - 1
         items.add(item)
         notifyItemInserted(position)
     }
+
+    fun deleteItem(context: Context, index: Int) {
+        // Elimina el elemento de la lista de elementos
+        items.removeAt(index)
+        // Notifica al adaptador de que se ha producido un cambio
+        notifyItemRemoved(index)
+
+        // Abre una conexión a la base de datos
+        val db = openDb(context)
+        // Elimina el elemento de la tabla de la base de datos
+        deleteItemFromDb(db, index)
+        // Cierra la conexión a la base de datos
+        closeDb(db)
+    }
+
+
     fun update(items: List<Item>) {
         val position = items.size - 1
         this.items.clear()
@@ -142,6 +182,9 @@ class ItemAdapter(private val items: MutableList<Item>) : RecyclerView.Adapter<I
         notifyItemChanged(position)
     }
 
+    fun getItemPosition(item: Item): Int {
+        return items.indexOf(item)
+    }
 
 }
 

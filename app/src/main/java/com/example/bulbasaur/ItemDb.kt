@@ -1,5 +1,6 @@
 package com.example.bulbasaur
 
+import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
@@ -58,3 +59,31 @@ class ItemContract {
         const val COLUMN_AMOUNT = "amount"
     }
 }
+
+fun openDb(context: Context): SQLiteDatabase {
+    val dbHelper = ItemDb(context)
+    return dbHelper.writableDatabase
+}
+
+fun closeDb(db: SQLiteDatabase) {
+    db.close()
+}
+
+fun deleteFromDb(db: SQLiteDatabase) {
+    db.execSQL("DELETE FROM items")
+}
+fun deleteItemFromDb(db: SQLiteDatabase, id: Int) {
+    val selection = "${ItemContract.COLUMN_ID} = ?"
+    val selectionArgs = arrayOf(id.toString())
+    db.delete(ItemContract.TABLE_NAME, selection, selectionArgs)
+}
+
+
+fun insertIntoDb(db: SQLiteDatabase, name: String, amount: Int) {
+    val values = ContentValues().apply {
+        put(ItemContract.COLUMN_NAME, name)
+        put(ItemContract.COLUMN_AMOUNT, amount)
+    }
+    db.insert(ItemContract.TABLE_NAME, null, values)
+}
+
