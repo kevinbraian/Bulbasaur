@@ -44,9 +44,11 @@ class FirstFragment : Fragment() {
         recyclerView.adapter = adapter
         val deleteButton = view.findViewById<Button>(R.id.delete_item)
 
-
         binding.buttonFirst.setOnClickListener {
-            findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
+            val valueToPass = calculateAverageAmount(items)
+            val bundle = Bundle()
+            bundle.putString("key", valueToPass.toString())
+            findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment, bundle)
         }
 
         binding.buttonDelete.setOnClickListener {
@@ -111,16 +113,13 @@ class FirstFragment : Fragment() {
         return items
     }
 
-    /*private fun getItemPosition(item: Item): Int {
-        // Recorre la lista de elementos y devuelve la posición del elemento especificado
-        for (i in items.indices) {
-            if (items[i] == item) {
-                return i
-            }
+    private fun calculateAverageAmount(items: MutableList<Item>): Double {
+        var totalAmount = 0
+        for (item in items) {
+            totalAmount += item.amount.toInt()
         }
-        // Si no se encuentra el elemento, se devuelve -1
-        return -1
-    }*/
+        return totalAmount.toDouble() / items.size
+    }
 
 
 }
@@ -185,6 +184,7 @@ class ItemAdapter(private val items: MutableList<Item>) : RecyclerView.Adapter<I
     fun getItemPosition(item: Item): Int {
         return items.indexOf(item)
     }
+
 
 }
 

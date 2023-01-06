@@ -5,10 +5,11 @@
     <string name="repartija">REPARTIJA</string>
     <string name="second_fragment_label">PAGUEN</string>
     <string name="calcular">Calcular</string>
-    <string name="previous">Previous</string>
-
+    <string name="previous">Atras</string>
     <string name="nombre">Nombre</string>
     <string name="monto">Monto</string>
     <string name="plus">+</string>
     <string name="logo">logo</string>
+    <string name="paguen">Le toca pagar a cada uno:</string>
+    <string name="info">Ingresa nombre y cuanto puso:</string>
 </resources>
