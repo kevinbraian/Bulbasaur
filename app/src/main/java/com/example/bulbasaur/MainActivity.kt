@@ -29,24 +29,7 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         binding.fab.setOnClickListener { view ->
-            val dbHelper = ItemDb(this)
-            val db = dbHelper.writableDatabase
-            val cursor = db.query(
-                ItemContract.TABLE_NAME,   // Nombre de la tabla
-                arrayOf(ItemContract.COLUMN_NAME, ItemContract.COLUMN_AMOUNT), // Columnas a devolver
-                null, null, null, null, null)
-
-            val items = mutableListOf<Item>()
-            with(cursor) {
-                while (moveToNext()) {
-                    val name = getString(getColumnIndexOrThrow(ItemContract.COLUMN_NAME))
-                    val amount = getString(getColumnIndexOrThrow(ItemContract.COLUMN_AMOUNT))
-                    items.add(Item(name, amount))
-                }
-            }
-
-            val allItems = dbHelper.getAllItems()
-            Snackbar.make(view, allItems.toString(), Snackbar.LENGTH_LONG)
+            Snackbar.make(view, "KevinApps", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
 

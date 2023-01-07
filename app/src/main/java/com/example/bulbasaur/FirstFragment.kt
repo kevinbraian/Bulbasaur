@@ -1,6 +1,5 @@
 package com.example.bulbasaur
 
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -9,11 +8,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
 import com.example.bulbasaur.databinding.FragmentFirstBinding
+
 
 class FirstFragment : Fragment() {
 
@@ -24,8 +25,10 @@ class FirstFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
+        val viewModel = ViewModelProvider(this).get(MyViewModel::class.java)
+        val adapter = ItemAdapter(viewModel.items.value ?: mutableListOf())
+        binding.reclyclerview.adapter = adapter
         return binding.root
 
     }
@@ -38,21 +41,23 @@ class FirstFragment : Fragment() {
         val recyclerView = binding.reclyclerview
         val layoutManager = LinearLayoutManager(requireContext())
         recyclerView.layoutManager = layoutManager
-        val items = mutableListOf<Item>()
-        val adapter = ItemAdapter(items)
+        val viewModel = ViewModelProvider(this).get(MyViewModel::class.java)
+        viewModel.items.value = getAllItemsFromDb()
+        val adapter = ItemAdapter(viewModel.items.value ?: mutableListOf())
         val db = openDb(requireContext())
         recyclerView.adapter = adapter
-        val deleteButton = view.findViewById<Button>(R.id.delete_item)
 
         binding.buttonFirst.setOnClickListener {
-            val valueToPass = calculateAverageAmount(items)
+            val valueToPass = calculateAverageAmount(viewModel.items.value ?: mutableListOf())
             val bundle = Bundle()
             bundle.putString("key", valueToPass.toString())
             findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment, bundle)
         }
 
         binding.buttonDelete.setOnClickListener {
+            viewModel.items.value?.clear()
             deleteFromDb(db)
+            adapter.notifyItemRangeRemoved(0,viewModel.items.value!!.size)
         }
 
         binding.buttonAdd.setOnClickListener {
@@ -63,6 +68,7 @@ class FirstFragment : Fragment() {
                 val amounttInt = amountt.toInt()
                 insertIntoDb(db,namet,amounttInt)
                 adapter.add(item)
+                viewModel.items.value?.add(item)
                 adapter.update(getAllItemsFromDb())
                 // Limpia los campos de texto
                 nameEditText.text.clear()
@@ -72,23 +78,11 @@ class FirstFragment : Fragment() {
             }
         }
 
-        /*deleteButton.setOnClickListener {
-            // Obtiene la posición del elemento a eliminar
-            val index = getItemPosition(item)
-            // Elimina el elemento de la lista de elementos y de la base de datos
-            deleteItem(requireContext(), index)
-        }*/
-
-
     }
 
     override fun onDestroyView() {
-        val db = openDb(requireContext())
         super.onDestroyView()
-        deleteFromDb(db)
         _binding = null
-        activity?.deleteDatabase(ItemContract.DATABASE_NAME)
-        closeDb(db)
     }
 
     private fun getAllItemsFromDb(): MutableList<Item> {
@@ -114,11 +108,14 @@ class FirstFragment : Fragment() {
     }
 
     private fun calculateAverageAmount(items: MutableList<Item>): Double {
+        if (items.size == 0) return 0.0
+        if (items.size == 1) return items[0].amount.toDouble()
+
         var totalAmount = 0
         for (item in items) {
             totalAmount += item.amount.toInt()
         }
-        return totalAmount.toDouble() / items.size
+        return totalAmount.toDouble() / (items.size)
     }
 
 
@@ -130,6 +127,7 @@ class ItemAdapter(private val items: MutableList<Item>) : RecyclerView.Adapter<I
 
         val nameTextView: TextView = itemView.findViewById(R.id.name_text_view)
         val amountTextView: TextView = itemView.findViewById(R.id.amount_text_view)
+        val deleteButton: Button = itemView.findViewById(R.id.delete_item)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -147,6 +145,9 @@ class ItemAdapter(private val items: MutableList<Item>) : RecyclerView.Adapter<I
         }
         holder.nameTextView.text = item.name
         holder.amountTextView.text = item.amount
+        holder.deleteButton.setOnClickListener {
+            remove(position)
+        }
     }
 
     override fun getItemCount(): Int {
@@ -159,20 +160,10 @@ class ItemAdapter(private val items: MutableList<Item>) : RecyclerView.Adapter<I
         notifyItemInserted(position)
     }
 
-    fun deleteItem(context: Context, index: Int) {
-        // Elimina el elemento de la lista de elementos
-        items.removeAt(index)
-        // Notifica al adaptador de que se ha producido un cambio
-        notifyItemRemoved(index)
-
-        // Abre una conexión a la base de datos
-        val db = openDb(context)
-        // Elimina el elemento de la tabla de la base de datos
-        deleteItemFromDb(db, index)
-        // Cierra la conexión a la base de datos
-        closeDb(db)
+    fun remove(position: Int) {
+        items.removeAt(position)
+        notifyItemRemoved(position)
     }
-
 
     fun update(items: List<Item>) {
         val position = items.size - 1
@@ -180,11 +171,6 @@ class ItemAdapter(private val items: MutableList<Item>) : RecyclerView.Adapter<I
         this.items.addAll(items)
         notifyItemChanged(position)
     }
-
-    fun getItemPosition(item: Item): Int {
-        return items.indexOf(item)
-    }
-
 
 }
 

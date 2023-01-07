@@ -11,7 +11,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.051"
@@ -21,7 +21,7 @@
 
         <TextView
             android:id="@+id/name_text_view"
-            android:layout_width="202dp"
+            android:layout_width="147dp"
             android:layout_height="wrap_content"
             android:shadowColor="#000"
             android:shadowDx="2"
@@ -33,7 +33,7 @@
 
         <TextView
             android:id="@+id/amount_text_view"
-            android:layout_width="203dp"
+            android:layout_width="147dp"
             android:layout_height="wrap_content"
             android:shadowColor="#000"
             android:shadowDx="2"
@@ -44,7 +44,7 @@
 
         <Button
             android:id="@+id/delete_item"
-            android:layout_width="67dp"
+            android:layout_width="65dp"
             android:layout_height="wrap_content"
             android:backgroundTint="#EF0707"
             app:icon="@android:drawable/ic_menu_delete"

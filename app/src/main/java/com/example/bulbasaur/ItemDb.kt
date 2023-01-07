@@ -23,30 +23,6 @@ class ItemDb(context: Context) : SQLiteOpenHelper(context, ItemContract.DATABASE
             db.execSQL(dropTableStatement)
             onCreate(db)
         }
-
-        // Método para obtener todos los items de la base de datos
-        fun getAllItems(): ArrayList<Item> {
-            val items = ArrayList<Item>()
-            val selectQuery = "SELECT * FROM ${ItemContract.TABLE_NAME}"
-            val db = this.readableDatabase
-            val cursor = db.rawQuery(selectQuery, null)
-            try {if (cursor.moveToFirst()) {
-                do {
-                    val item = Item(cursor.getString(
-                        kotlin.math.abs(
-                            cursor.getColumnIndex(
-                                ItemContract.COLUMN_NAME
-                            )
-                        )
-                    ),
-                        cursor.getString(kotlin.math.abs(cursor.getColumnIndex(ItemContract.COLUMN_AMOUNT))))
-                    items.add(item)
-                } while (cursor.moveToNext())
-            }} finally {
-                cursor.close()
-            }
-            return items
-        }
     }
 
 class ItemContract {
@@ -65,19 +41,9 @@ fun openDb(context: Context): SQLiteDatabase {
     return dbHelper.writableDatabase
 }
 
-fun closeDb(db: SQLiteDatabase) {
-    db.close()
-}
-
 fun deleteFromDb(db: SQLiteDatabase) {
     db.execSQL("DELETE FROM items")
 }
-fun deleteItemFromDb(db: SQLiteDatabase, id: Int) {
-    val selection = "${ItemContract.COLUMN_ID} = ?"
-    val selectionArgs = arrayOf(id.toString())
-    db.delete(ItemContract.TABLE_NAME, selection, selectionArgs)
-}
-
 
 fun insertIntoDb(db: SQLiteDatabase, name: String, amount: Int) {
     val values = ContentValues().apply {
